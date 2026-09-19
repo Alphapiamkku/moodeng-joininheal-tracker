@@ -70,7 +70,7 @@ export const BookingScreen: React.FC<BookingScreenProps> = ({ onSuccessNavigate 
       counselorAvatar: chosenCounselor.avatar,
       topic: topic.trim(),
       nextGoal: notes || 'ติดตามสภาวะอารมณ์และเสริมทักษะการเผชิญความวิตกกังวล',
-      counselorNotes: 'ระบบบันทึกการนัดหมายลง Firebase (moodeng-joininheal-tracker) เรียบร้อยแล้ว'
+      counselorNotes: 'ระบบบันทึกการนัดหมายเรียบร้อยแล้ว'
     });
 
     setIsSubmitting(false);

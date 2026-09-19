@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Sparkles, 
   Calendar, 
   TrendingDown, 
+  TrendingUp,
   Smile, 
   ArrowRight, 
   MessageSquare, 
@@ -45,6 +46,117 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   const studentNickname = user?.nickname || user?.displayName || 'น้องมายด์';
   const studentFaculty = user?.faculty || 'คณะแพทยศาสตร์';
   const studentYear = user?.yearLevel || 'ชั้นปีที่ 3 (Junior)';
+
+  // Dynamic Mental Wellness evaluation based on user's real mood check-in history
+  const moodAnalysis = useMemo(() => {
+    if (!moodHistory || moodHistory.length === 0) {
+      return {
+        status: 'no_data',
+        trend: 'neutral',
+        title: 'เริ่มต้นติดตามสุขภาวะทางจิตของคุณ',
+        description: 'ยังไม่มีประวัติการบันทึกอารมณ์ เช็คอินอารมณ์วันนี้เพื่อให้ระบบเริ่มประเมินและติดตามแนวโน้มสุขภาวะทางจิตของคุณ',
+        badge: 'รอเช็คอินครั้งแรก 🌸',
+        badgeColor: 'bg-[#f6f1e8] text-[#716962] border-[#ebdccb]',
+        stressScoreDisplay: '-',
+        stressScoreDiff: null,
+        stressScoreText: 'รอการบันทึกอารมณ์ครั้งแรก'
+      };
+    }
+
+    const latest = moodHistory[0];
+    const prev = moodHistory[1];
+
+    const moodNameMap: Record<string, { label: string; icon: string }> = {
+      calm: { label: 'สงบ / ผ่อนคลาย', icon: '🌿' },
+      good: { label: 'แจ่มใส / สดชื่น', icon: '☀️' },
+      neutral: { label: 'เรื่อยๆ / ปกติ', icon: '🍃' },
+      stressed: { label: 'ตึงเครียด / วิตกกังวล', icon: '⚡' },
+      exhausted: { label: 'เหนื่อยล้า / หมดพลัง', icon: '🌧️' }
+    };
+
+    const latestInfo = moodNameMap[latest.moodLevel] || { label: latest.moodLevel, icon: '✨' };
+
+    // When there is previous check-in to compare
+    if (prev) {
+      const dropDiff = prev.stressScore - latest.stressScore;
+      const isMoodBetter = 
+        (['stressed', 'exhausted'].includes(prev.moodLevel) && ['calm', 'good', 'neutral'].includes(latest.moodLevel)) ||
+        (prev.moodLevel === 'neutral' && ['calm', 'good'].includes(latest.moodLevel));
+
+      // Case 1: Improvement in stress score or mood quality
+      if (dropDiff > 0 || isMoodBetter) {
+        const percentDrop = prev.stressScore > 0 && dropDiff > 0 ? Math.round((dropDiff / prev.stressScore) * 100) : 0;
+        return {
+          status: 'improving',
+          trend: 'up',
+          title: 'สุขภาวะทางจิตของคุณมีแนวโน้มพัฒนาขึ้นอย่างต่อเนื่อง',
+          description: `จากการเช็คอินล่าสุด (${latest.date} • ${latestInfo.icon} ${latestInfo.label}) ระดับความเครียดลดลงจาก ${prev.stressScore} เหลือ ${latest.stressScore}/10 สภาพจิตใจมีความผ่อนคลายและสมดุลขึ้น`,
+          badge: 'แนวโน้มพัฒนาขึ้นต่อเนื่อง 🌿',
+          badgeColor: 'bg-[#eef4ef] text-[#2e5737] border-[#cbe1d0]',
+          stressScoreDisplay: `${latest.stressScore} / 10`,
+          stressScoreDiff: percentDrop > 0 ? `ลดลง ${percentDrop}%` : 'แนวโน้มดีขึ้น',
+          stressScoreText: 'ระดับความเครียดลดลงจากครั้งก่อน'
+        };
+      }
+
+      // Case 2: Stress score increased or mood worsened
+      if (dropDiff < 0 || ['stressed', 'exhausted'].includes(latest.moodLevel)) {
+        const increasePercent = prev.stressScore > 0 ? Math.round((Math.abs(dropDiff) / prev.stressScore) * 100) : 0;
+        return {
+          status: 'alert',
+          trend: 'down',
+          title: 'ระบบตรวจพบความตึงเครียดหรือความเหนื่อยล้าสะสมเพิ่มขึ้น',
+          description: `จากการเช็คอินล่าสุด (${latest.date} • ${latestInfo.icon} ${latestInfo.label}) ความเครียดอยู่ที่ ${latest.stressScore}/10 อย่าลืมหาเวลาพักผ่อน เติมพลัง หรือทักแชทคุยกับนักจิตวิทยาเพื่อแบ่งเบาใจนะคะ 🤍`,
+          badge: 'เฝ้าระวังความเครียดสะสม ⚡',
+          badgeColor: 'bg-[#fef0ed] text-[#b83a2c] border-[#fbd5b5]',
+          stressScoreDisplay: `${latest.stressScore} / 10`,
+          stressScoreDiff: increasePercent > 0 ? `เพิ่มขึ้น ${increasePercent}%` : 'ควรพักผ่อน',
+          stressScoreText: 'แนะนำฝึกผ่อนคลายกล้ามเนื้อ PMR'
+        };
+      }
+    }
+
+    // Single record or consistent state evaluations
+    if (['calm', 'good'].includes(latest.moodLevel) && latest.stressScore <= 4) {
+      return {
+        status: 'positive',
+        trend: 'up',
+        title: 'สุขภาวะทางจิตของคุณอยู่ในเกณฑ์สมดุลและผ่อนคลายได้ดีเยี่ยม',
+        description: `จากการเช็คอินล่าสุด (${latest.date} • ${latestInfo.icon} ${latestInfo.label}) ระดับความเครียดอยู่ที่ ${latest.stressScore}/10 รักษาสมดุลชีวิตและจิตใจที่สดใสนี้ต่อไปนะคะ ✨`,
+        badge: 'อารมณ์สดใสและสมดุล ☀️',
+        badgeColor: 'bg-[#eef4ef] text-[#2e5737] border-[#cbe1d0]',
+        stressScoreDisplay: `${latest.stressScore} / 10`,
+        stressScoreDiff: 'สมดุลดี',
+        stressScoreText: 'อยู่ในเกณฑ์ปกติ ผ่อนคลายดี'
+      };
+    }
+
+    if (['stressed', 'exhausted'].includes(latest.moodLevel) || latest.stressScore >= 7) {
+      return {
+        status: 'alert',
+        trend: 'down',
+        title: 'ระบบพบว่าช่วงนี้คุณอาจกำลังเผชิญความเครียดหรือเหนื่อยล้าสะสม',
+        description: `จากการเช็คอินล่าสุด (${latest.date} • ${latestInfo.icon} ${latestInfo.label}) ระดับความเครียด ${latest.stressScore}/10 แนะนำให้พักสายตา ฝึกหายใจ หรือปรึกษาผู้เชี่ยวชาญได้เสมอนะคะ 🤍`,
+        badge: 'เฝ้าระวังความเครียด ⚡',
+        badgeColor: 'bg-[#fef0ed] text-[#b83a2c] border-[#fbd5b5]',
+        stressScoreDisplay: `${latest.stressScore} / 10`,
+        stressScoreDiff: 'สูงกว่าปกติ',
+        stressScoreText: 'ควรพักผ่อนและดูแลสุขภาพใจ'
+      };
+    }
+
+    return {
+      status: 'neutral',
+      trend: 'stable',
+      title: 'สุขภาวะทางจิตของคุณอยู่ในเกณฑ์ปกติ มีความคงที่ในชีวิตประจำวัน',
+      description: `จากการเช็คอินล่าสุด (${latest.date} • ${latestInfo.icon} ${latestInfo.label}) ระดับความเครียดอยู่ที่ ${latest.stressScore}/10 อารมณ์มีความสมดุลและจัดการชีวิตประจำวันได้ราบรื่น`,
+      badge: 'สภาวะอารมณ์คงที่ปกติ 🍃',
+      badgeColor: 'bg-[#fdfbf7] text-[#574e47] border-[#ebdccb]',
+      stressScoreDisplay: `${latest.stressScore} / 10`,
+      stressScoreDiff: 'คงที่',
+      stressScoreText: 'อยู่ในเกณฑ์ปกติ สมดุลดี'
+    };
+  }, [moodHistory]);
 
   return (
     <div className="flex-1 w-full bg-[#fdfbf7] p-4 lg:p-8 space-y-6 max-w-[1400px] mx-auto">
@@ -90,9 +202,23 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             )}
           </div>
 
-          <p className="text-xs sm:text-sm text-[#716962] pt-1">
-            สุขภาวะทางจิตของคุณมีแนวโน้มพัฒนาขึ้นอย่างต่อเนื่อง ข้อมูลทั้งหมดถูกเชื่อมต่อกับ Firebase (moodeng-joininheal-tracker)
-          </p>
+          {/* Dynamic Mental Wellness Evaluation based on user's check-in history */}
+          <div className="pt-2 space-y-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs ${moodAnalysis.badgeColor}`}>
+                <Activity className="w-3 h-3" />
+                <span>{moodAnalysis.badge}</span>
+              </span>
+              <span className="text-[11px] text-[#716962] font-medium">
+                ประเมินจากการเช็คอินอารมณ์ของคุณ {moodHistory.length > 0 ? `(${moodHistory.length} ครั้งล่าสุด)` : ''}
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm text-[#574e47] leading-relaxed">
+              <strong className="text-[#221e1a] font-bold">{moodAnalysis.title}:</strong>{' '}
+              <span>{moodAnalysis.description}</span>
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
@@ -118,10 +244,20 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div className="p-5 rounded-2xl bg-[#fffefb] border border-[#ebdccb] shadow-xs space-y-1">
           <span className="text-xs text-[#716962] font-medium">ระดับความเครียดล่าสุด</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#221e1a]">4.1 / 10</span>
-            <span className="text-xs font-semibold text-[#65856c]">ลดลง 43%</span>
+            <span className="text-2xl font-bold text-[#221e1a]">{moodAnalysis.stressScoreDisplay}</span>
+            {moodAnalysis.stressScoreDiff && (
+              <span className={`text-xs font-semibold ${
+                moodAnalysis.trend === 'up' 
+                  ? 'text-[#2e5737]' 
+                  : moodAnalysis.trend === 'down' 
+                  ? 'text-[#b83a2c]' 
+                  : 'text-[#574e47]'
+              }`}>
+                {moodAnalysis.stressScoreDiff}
+              </span>
+            )}
           </div>
-          <p className="text-[11px] text-[#65856c]">อยู่ในเกณฑ์ปกติ สมดุลดี</p>
+          <p className="text-[11px] text-[#65856c]">{moodAnalysis.stressScoreText}</p>
         </div>
 
         <div className="p-5 rounded-2xl bg-[#fffefb] border border-[#ebdccb] shadow-xs space-y-1">

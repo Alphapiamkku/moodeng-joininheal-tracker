@@ -44,7 +44,11 @@ export const MoodDiaryModal: React.FC<MoodDiaryModalProps> = ({ isOpen, onClose 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const today = new Date();
-    const dateFormatted = `${today.getDate()} ต.ค. 2567`;
+    const dateFormatted = today.toLocaleDateString('th-TH', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
 
     await addMoodLog({
       date: dateFormatted,
