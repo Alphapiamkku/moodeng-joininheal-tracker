@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "communityCompanion": {
+      "title": "Community Companion",
+      "description": "Public companion shared by students into the KKU healing sanctuary garden",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userFaculty": { "type": "string" },
+        "avatarIcon": { "type": "string" },
+        "characterType": { "type": "string" },
+        "characterName": { "type": "string" },
+        "eggDay": { "type": "number" },
+        "streakDays": { "type": "number" },
+        "message": { "type": "string", "maxLength": 300 },
+        "cheersCount": { "type": "number" },
+        "hugsCount": { "type": "number" },
+        "teasCount": { "type": "number" },
+        "lastActive": { "type": "number" },
+        "isOnline": { "type": "boolean" },
+        "equippedBadge": { "type": "string" }
+      },
+      "required": ["userId", "userName", "characterType", "message"]
+    },
+    "communityNote": {
+      "title": "Community Note",
+      "description": "Encouraging sticky note posted by students on the sanctuary cheer wall",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userFaculty": { "type": "string" },
+        "characterIcon": { "type": "string" },
+        "content": { "type": "string", "maxLength": 500 },
+        "moodTag": { "type": "string" },
+        "hearts": { "type": "number" },
+        "hugs": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "userName", "content", "moodTag"]
+    }
+  },
+  "firestore": {
+    "/community_garden/{companionId}": {
+      "schema": { "$ref": "#/entities/communityCompanion" },
+      "description": "Collection of companions present in the community garden"
+    },
+    "/community_notes/{noteId}": {
+      "schema": { "$ref": "#/entities/communityNote" },
+      "description": "Collection of cheer notes left on the community board"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "KKU Wellness - ศูนย์สุขภาวะทางจิต มข.",
+  "description": "ระบบดูแลสุขภาพจิต ติดตามอารมณ์ คัดกรองความเครียด พร้อมระบบ Gamification ฟักไข่เพื่อนซี้ 7 วัน ชุมชนในสวนฮีลใจ และบันทึกข้อมูลด้วย Firebase มหาวิทยาลัยขอนแก่น",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
