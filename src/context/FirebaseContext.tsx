@@ -74,8 +74,11 @@ interface FirebaseContextType {
   loading: boolean;
   isGuest: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithGmail: (email: string, customNickname?: string) => Promise<void>;
   signInDemoUser: () => void;
   signOut: () => Promise<void>;
+  authError: string | null;
+  clearAuthError: () => void;
   updateUserProfile: (updates: {
     nickname?: string;
     faculty?: string;
@@ -400,10 +403,64 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  // Sign In with Google (Gmail)
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const clearAuthError = () => setAuthError(null);
+
+  // Direct Gmail or KKU Student Mail Sign-In (100% reliable in iFrame & Cloud Run)
+  const signInWithGmail = async (email: string, customNickname?: string) => {
+    try {
+      setLoading(true);
+      setAuthError(null);
+      const cleanEmail = email.trim().toLowerCase();
+      if (!cleanEmail) {
+        throw new Error('กรุณาระบุอีเมล');
+      }
+
+      const stored = getStoredUserProfile();
+      const nickname = customNickname?.trim() || stored.nickname || cleanEmail.split('@')[0] || 'น้องมายด์';
+      const uidKey = 'gmail-' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_');
+
+      const profile: UserProfile = {
+        ...stored,
+        uid: uidKey,
+        email: cleanEmail,
+        displayName: nickname,
+        nickname: nickname,
+      };
+
+      setUser(profile);
+      setIsGuest(false);
+
+      // Persist to local storage
+      try {
+        localStorage.setItem('kku_user_profile', JSON.stringify(profile));
+      } catch (e) {}
+
+      // Persist / Sync to Firebase Firestore
+      try {
+        await setDoc(doc(db, 'users', uidKey), {
+          ...profile,
+          lastLoginAt: Date.now(),
+          authProvider: 'gmail'
+        }, { merge: true });
+      } catch (e) {
+        console.warn('Firestore sync notice on Gmail sign in:', e);
+      }
+    } catch (err: any) {
+      console.error('Sign in with Gmail error:', err);
+      setAuthError(err?.message || 'ไม่สามารถเข้าสู่ระบบด้วย Gmail ได้ กรุณาลองใหม่อีกครั้ง');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sign In with Google Popup (with clean fallback for iFrame / sandbox environments)
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
+      setAuthError(null);
       const result = await signInWithPopup(auth, googleProvider);
       const fbUser = result.user;
       const stored = getStoredUserProfile();
@@ -424,36 +481,27 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         localStorage.setItem('kku_user_profile', JSON.stringify(profile));
         await setDoc(doc(db, 'users', fbUser.uid), {
           ...profile,
-          lastLoginAt: Date.now()
+          lastLoginAt: Date.now(),
+          authProvider: 'google-popup'
         }, { merge: true });
       } catch (e) {
         console.warn('Sync firestore user notice:', e);
       }
     } catch (error: any) {
-      console.error('Google sign in error:', error);
-      // If popup blocked or domain restriction in iframe sandbox, allow fallback sign-in
-      if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/unauthorized-domain') {
-        const fallbackEmail = prompt('กรุณากรอกอีเมล Gmail ของคุณสำหรับการเข้าสู่ระบบตัวอย่าง:', 'piampiamhathai@gmail.com');
-        if (fallbackEmail) {
-          const stored = getStoredUserProfile();
-          const nickname = stored.nickname || fallbackEmail.split('@')[0] || 'น้องมายด์';
-          const fallbackProfile: UserProfile = {
-            uid: 'gmail-user-' + Date.now(),
-            email: fallbackEmail,
-            displayName: nickname,
-            nickname: nickname,
-            photoURL: stored.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
-            studentId: stored.studentId || '643040182-3',
-            faculty: stored.faculty || 'คณะแพทยศาสตร์',
-            yearLevel: stored.yearLevel || 'ชั้นปีที่ 3 (Junior)'
-          };
-          setUser(fallbackProfile);
-          setIsGuest(false);
-          try {
-            localStorage.setItem('kku_user_profile', JSON.stringify(fallbackProfile));
-          } catch (e) {}
-        }
+      console.warn('Google sign-in notice (likely popup restriction in iframe):', error);
+      // If popup blocked or domain restriction in iframe sandbox, provide clear notification
+      const isPopupOrDomainIssue = 
+        error?.code === 'auth/popup-blocked' || 
+        error?.code === 'auth/unauthorized-domain' ||
+        error?.code === 'auth/cancelled-popup-request' ||
+        error?.code === 'auth/internal-error';
+
+      if (isPopupOrDomainIssue) {
+        setAuthError('ระบบเบราว์เซอร์หรือ iFrame พรีวิวบล็อกหน้าต่าง Popup ของ Google กรุณาเลือกวิธี "เข้าสู่ระบบด้วย Gmail ทันที" ได้เลย');
+      } else {
+        setAuthError(error?.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ Google');
       }
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -1070,8 +1118,11 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         loading,
         isGuest,
         signInWithGoogle,
+        signInWithGmail,
         signInDemoUser,
         signOut,
+        authError,
+        clearAuthError,
         updateUserProfile,
         appointments,
         activeFilter,

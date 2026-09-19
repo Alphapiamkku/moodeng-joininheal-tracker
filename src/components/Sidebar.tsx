@@ -27,11 +27,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onTogglePosition
 }) => {
   const navItems: { id: NavTab; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'overview', label: 'ภาพรวมแดชบอร์ด', icon: LayoutGrid },
-    { id: 'booking', label: 'จองเวลานัดหมาย', icon: CalendarDays },
-    { id: 'history', label: 'ประวัติการรับคำปรึกษา', icon: FileText },
-    { id: 'knowledge', label: 'คลังความรู้และประเมินตนเอง', icon: HelpCircle },
-    { id: 'chat', label: 'แชทข้อความกับนักจิตวิทยา', icon: MessageSquare },
+    { id: 'overview', label: 'ภาพรวม', icon: LayoutGrid },
+    { id: 'booking', label: 'จองนัดหมาย', icon: CalendarDays },
+    { id: 'history', label: 'ประวัติปรึกษา', icon: FileText },
+    { id: 'knowledge', label: 'คลังความรู้ & แบบประเมิน', icon: HelpCircle },
+    { id: 'chat', label: 'แชทนักจิตวิทยา', icon: MessageSquare },
   ];
 
   return (

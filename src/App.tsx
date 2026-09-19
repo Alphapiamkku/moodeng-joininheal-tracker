@@ -18,6 +18,7 @@ import { PDFReportModal } from './components/PDFReportModal';
 import { HealingSanctuaryModal } from './components/HealingSanctuaryModal';
 import { EggHatchingCelebrationModal } from './components/EggHatchingCelebrationModal';
 import { StudentProfileModal } from './components/StudentProfileModal';
+import { GmailAuthModal } from './components/GmailAuthModal';
 import { AssessmentToolId, HatchedCharacter } from './types';
 
 const AppContent: React.FC = () => {
@@ -36,6 +37,7 @@ const AppContent: React.FC = () => {
   const [isPDFReportOpen, setIsPDFReportOpen] = useState(false);
   const [isSanctuaryOpen, setIsSanctuaryOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isGmailLoginOpen, setIsGmailLoginOpen] = useState(false);
   const [hatchedCharacter, setHatchedCharacter] = useState<HatchedCharacter | null>(null);
 
   const handleOpenAssessment = (toolId?: AssessmentToolId) => {
@@ -53,6 +55,7 @@ const AppContent: React.FC = () => {
           onOpenSOS={() => setIsSOSOpen(true)} 
           onOpenSanctuary={() => setIsSanctuaryOpen(true)}
           onOpenProfile={() => setIsProfileOpen(true)}
+          onOpenGmailLogin={() => setIsGmailLoginOpen(true)}
         />
 
         {/* 2. Top Navigation Bar (Active when menuPosition === 'top') */}
@@ -165,6 +168,11 @@ const AppContent: React.FC = () => {
       <StudentProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      <GmailAuthModal
+        isOpen={isGmailLoginOpen}
+        onClose={() => setIsGmailLoginOpen(false)}
       />
 
       <EggHatchingCelebrationModal
