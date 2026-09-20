@@ -723,6 +723,13 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Send Assessment Result to Counselor
   const sendAssessmentResult = async (threadId: string, assessment: AssessmentResult) => {
+    let emotionInfo = '';
+    if (assessment.dominantEmotionTh) {
+      emotionInfo = `\n🌟 สภาวะอารมณ์เด่น: ${assessment.dominantEmotionTh}`;
+      if (assessment.emotionBreakdown) {
+        emotionInfo += `\n• สัดส่วน 3 อารมณ์: 🌿 มีความสุข ${assessment.emotionBreakdown.happy}% | 💧 เศร้า ${assessment.emotionBreakdown.sad}% | ⚡ วิตกกังวล ${assessment.emotionBreakdown.anxiety}%`;
+      }
+    }
     let subscaleInfo = '';
     if (assessment.subscales && assessment.subscales.length > 0) {
       subscaleInfo = '\n📊 มิติย่อย: ' + assessment.subscales.map(s => `${s.nameTh} ${s.score}/${s.maxScore} (${s.level})`).join(' | ');
@@ -731,7 +738,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ? assessment.recommendations.slice(0, 2).join(' • ')
       : assessment.recommendations;
     
-    const text = `📋 ส่งผลการประเมินตนเอง: ${assessment.toolTitle || assessment.type}\n• คะแนนรวม: ${assessment.score}/${assessment.maxScore} [${assessment.level}]${subscaleInfo}\n• ทฤษฎีอ้างอิง: ${assessment.theoryName || 'ทฤษฎีจิตวิทยาคลินิก'}\n• แนวทางดูแล: ${recText}`;
+    const text = `📋 ส่งผลการประเมินตนเอง: ${assessment.toolTitle || assessment.type}\n• คะแนนรวม: ${assessment.score}/${assessment.maxScore} [${assessment.level}]${emotionInfo}${subscaleInfo}\n• ทฤษฎีอ้างอิง: ${assessment.theoryName || 'ทฤษฎีจิตวิทยาคลินิก'}\n• สถานะ: ได้ทดลองปฏิบัติตามแผนดูแลตนเองเบื้องต้นแล้ว แต่ยังรู้สึกไม่ดีขึ้น จึงส่งผลเพื่อขอนัดหมายรับคำปรึกษาจากนักจิตวิทยาค่ะ\n• แนวทางดูแลเบื้องต้น: ${recText}`;
     await sendMessage(text);
   };
 

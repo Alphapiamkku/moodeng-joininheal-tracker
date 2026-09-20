@@ -32,7 +32,7 @@ const AppContent: React.FC = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isMoodDiaryOpen, setIsMoodDiaryOpen] = useState(false);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
-  const [selectedAssessmentTool, setSelectedAssessmentTool] = useState<AssessmentToolId>('DASS-21');
+  const [selectedAssessmentTool, setSelectedAssessmentTool] = useState<AssessmentToolId>('TRI-EMO');
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const [isPDFReportOpen, setIsPDFReportOpen] = useState(false);
   const [isSanctuaryOpen, setIsSanctuaryOpen] = useState(false);

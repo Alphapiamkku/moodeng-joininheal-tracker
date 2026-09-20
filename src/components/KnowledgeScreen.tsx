@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { AssessmentToolId } from '../types';
 import { PSYCHOLOGICAL_SCREENERS } from '../data/psychologicalScreeners';
+import { SoundTherapyPlayer } from './SoundTherapyPlayer';
 
 interface KnowledgeScreenProps {
   onOpenAssessment: (toolId?: AssessmentToolId) => void;
@@ -28,7 +29,7 @@ export const KnowledgeScreen: React.FC<KnowledgeScreenProps> = ({ onOpenAssessme
   const [breathingActive, setBreathingActive] = useState(false);
   const [breathPhase, setBreathPhase] = useState<'Inhale' | 'Hold' | 'Exhale' | 'Rest'>('Inhale');
   const [breathTimer, setBreathTimer] = useState(4);
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'stress' | 'anxiety' | 'burnout' | 'depression'>('all');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'tri-emo' | 'stress' | 'anxiety' | 'burnout' | 'depression'>('all');
 
   useEffect(() => {
     let interval: any;
@@ -84,6 +85,7 @@ export const KnowledgeScreen: React.FC<KnowledgeScreenProps> = ({ onOpenAssessme
 
   const filteredScreeners = PSYCHOLOGICAL_SCREENERS.filter((s) => {
     if (selectedFilter === 'all') return true;
+    if (selectedFilter === 'tri-emo') return s.id === 'TRI-EMO';
     if (selectedFilter === 'stress') return s.category === 'stress' || s.id === 'DASS-21';
     if (selectedFilter === 'anxiety') return s.category === 'anxiety' || s.id === 'DASS-21';
     if (selectedFilter === 'depression') return s.category === 'depression' || s.id === 'DASS-21';
@@ -109,7 +111,7 @@ export const KnowledgeScreen: React.FC<KnowledgeScreenProps> = ({ onOpenAssessme
         </div>
 
         <button
-          onClick={() => onOpenAssessment('DASS-21')}
+          onClick={() => onOpenAssessment('TRI-EMO')}
           className="px-5 py-2.5 bg-[#c85a32] hover:bg-[#b34d28] text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-xs transition-all cursor-pointer self-start md:self-auto flex-shrink-0"
         >
           <Brain className="w-4 h-4" />
@@ -135,7 +137,8 @@ export const KnowledgeScreen: React.FC<KnowledgeScreenProps> = ({ onOpenAssessme
           {/* Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
             {[
-              { id: 'all', label: 'ทั้งหมด (6 เครื่องมือ)' },
+              { id: 'all', label: 'ทั้งหมด (7 เครื่องมือ)' },
+              { id: 'tri-emo', label: '🌟 3 อารมณ์หลัก (เศร้า•สุข•กังวล)' },
               { id: 'stress', label: 'ความเครียด (ST-5, DASS-21)' },
               { id: 'anxiety', label: 'ความวิตกกังวล (GAD-7)' },
               { id: 'burnout', label: 'ภาวะหมดไฟ (MBI-SS)' },
@@ -215,7 +218,10 @@ export const KnowledgeScreen: React.FC<KnowledgeScreenProps> = ({ onOpenAssessme
         </div>
       </div>
 
-      {/* 2. Interactive Relaxation Tools & Articles Row */}
+      {/* 2. Sound Therapy & Ambient Healing Section */}
+      <SoundTherapyPlayer />
+
+      {/* 3. Interactive Relaxation Tools & Articles Row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Interactive Breathing Tool (Box Breathing) */}
         <div className="lg:col-span-6 bg-[#fffefb] rounded-3xl border border-[#ebdccb] p-6 shadow-2xs space-y-5">

@@ -87,7 +87,7 @@ export interface MoodEntry {
   createdAt: number;
 }
 
-export type AssessmentToolId = 'DASS-21' | 'ST-5' | 'GAD-7' | 'PHQ-9' | 'MBI-SS' | '2Q';
+export type AssessmentToolId = 'TRI-EMO' | 'DASS-21' | 'ST-5' | 'GAD-7' | 'PHQ-9' | 'MBI-SS' | '2Q';
 
 export interface AssessmentSubscaleScore {
   name: string;
@@ -97,6 +97,23 @@ export interface AssessmentSubscaleScore {
   level: string;
   color: string;
   description: string;
+}
+
+export interface SelfCareTechnique {
+  name: string;
+  category: 'breath' | 'mindset' | 'action' | 'rest';
+  action: string;
+  duration: string;
+}
+
+export interface AssessmentSelfCarePlan {
+  title: string;
+  badge: string;
+  trialDays: number;
+  coreAdvice: string;
+  techniques: SelfCareTechnique[];
+  checklist: string[];
+  whenToSeekHelp: string[];
 }
 
 export interface AssessmentResult {
@@ -114,6 +131,14 @@ export interface AssessmentResult {
   recommendations: string[];
   subscales?: AssessmentSubscaleScore[];
   counselorNotificationSent?: boolean;
+  dominantEmotion?: 'happy' | 'sad' | 'anxiety' | 'balanced';
+  dominantEmotionTh?: string;
+  emotionBreakdown?: {
+    happy: number; // 0-100%
+    sad: number; // 0-100%
+    anxiety: number; // 0-100%
+  };
+  selfCarePlan?: AssessmentSelfCarePlan;
 }
 
 export interface ScreenerQuestion {
@@ -153,6 +178,14 @@ export interface PsychologicalScreener {
     severityGrade: 'normal' | 'mild' | 'moderate' | 'severe' | 'extremely_severe';
     recommendations: string[];
     subscales?: AssessmentSubscaleScore[];
+    dominantEmotion?: 'happy' | 'sad' | 'anxiety' | 'balanced';
+    dominantEmotionTh?: string;
+    emotionBreakdown?: {
+      happy: number;
+      sad: number;
+      anxiety: number;
+    };
+    selfCarePlan?: AssessmentSelfCarePlan;
   };
 }
 
